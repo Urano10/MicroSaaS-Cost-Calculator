@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="it">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -728,14 +728,18 @@
 
     <script>
         function switchTab(tabName) {
+            // Nascondi tutti i tab
             const contents = document.querySelectorAll('.tab-content');
             contents.forEach(content => content.classList.remove('active'));
             
+            // Deseleziona tutti i bottoni
             const buttons = document.querySelectorAll('.tab-button');
             buttons.forEach(button => button.classList.remove('active'));
             
+            // Mostra il tab selezionato
             document.getElementById(tabName).classList.add('active');
             
+            // Seleziona il bottone
             event.target.classList.add('active');
         }
 
@@ -744,12 +748,15 @@
             const apiRequestsPerUser = parseFloat(document.getElementById('apiRequests').value) || 0;
             const totalApiRequests = activeUsers * apiRequestsPerUser;
             
+            // Parse LLM choice: format is "input_price|output_price"
             const llmChoice = document.getElementById('llmChoice').value;
             const [inputPrice, outputPrice] = llmChoice.split('|').map(parseFloat);
             
+            // Calculate LLM cost: average 1M input tokens and 1M output tokens per 100k requests
+            // Assuming 1000 tokens per request average
             const tokensPerRequest = 1000;
             const totalInputTokens = totalApiRequests * tokensPerRequest;
-            const totalOutputTokens = totalApiRequests * tokensPerRequest * 0.5;
+            const totalOutputTokens = totalApiRequests * tokensPerRequest * 0.5; // Output is typically 50% of input
             
             const llmCost = ((totalInputTokens / 1000000) * inputPrice) + ((totalOutputTokens / 1000000) * outputPrice);
             
@@ -759,8 +766,11 @@
             const transactions = parseFloat(document.getElementById('transactions').value) || 0;
             const automationCost = parseFloat(document.getElementById('automations').value);
 
+            // Show/hide Stripe input based on selection
             document.getElementById('stripeGroup').style.display = useStripe === 'yes' ? 'block' : 'none';
 
+            // Calcolo Stripe: 2.9% + $0.30 per transazione
+            // Assumiamo prezzo medio transazione $50
             let stripeCost = 0;
             if (useStripe === 'yes') {
                 const avgTransactionPrice = 50;
@@ -770,6 +780,7 @@
             const totalMonthly = llmCost + noCodeCost + lowCodeCost + stripeCost + automationCost;
             const totalAnnual = totalMonthly * 12;
 
+            // Aggiorna i valori
             document.getElementById('llmCost').textContent = '$' + llmCost.toFixed(2);
             document.getElementById('nocodeCost').textContent = '$' + noCodeCost.toFixed(2);
             document.getElementById('lowcodeCost').textContent = '$' + lowCodeCost.toFixed(2);
@@ -779,6 +790,7 @@
             document.getElementById('annualCost').textContent = '$' + totalAnnual.toFixed(2);
         }
 
+        // Calcola al caricamento
         updateCalculation();
     </script>
 </body>
