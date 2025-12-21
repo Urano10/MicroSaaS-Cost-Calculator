@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MicroSaaS Cost Calculator - AI & Low-Code Pricing</title>
+    <style>
+        :root {
+            --color-primary: #2d7a7a;
+            --color-primary-hover: #235f5f;
+            --color-secondary: #f0f4f4;
+            --color-text: #1a1a1a;
+            --color-text-light: #666;
+            --color-border: #ddd;
+            --color-success: #27ae60;
+            --color-warning: #e67e22;
+            --color-danger: #e74c3c;
+            --space-8: 8px;
+            --space-16: 16px;
+            --space-24: 24px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: var(--color-text);
+            padding: var(--space-16);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            padding: var(--space-24);
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--color-primary);
+            margin-bottom: var(--space-24);
+            font-size: 2em;
+        }
+
+        .tabs {
+            display: flex;
+            gap: var(--space-8);
+            margin-bottom: var(--space-24);
+            border-bottom: 2px solid var(--color-secondary);
+            flex-wrap: wrap;
+        }
+
+        .tab-button {
+            padding: var(--space-8) var(--space-16);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1em;
+            color: var(--color-text-light);
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .tab-button.active {
+            color: var(--color-primary);
+            border-bottom-color: var(--color-primary);
+        }
+
+        .tab-button:hover {
+            color: var(--color-primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+            margin-bottom: var(--space-24);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95em;
+        }
+
+        thead {
+            background: var(--color-secondary);
+        }
+
+        th {
+            padding: var(--space-16);
+            text-align: left;
+            font-weight: 600;
+            color: var(--color-primary);
+            border-bottom: 2px solid var(--color-border);
+        }
+
+        td {
+            padding: var(--space-16);
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        tr:hover {
+            background: #f9fafb;
+        }
+
+        .price {
+            color: var(--color-success);
+            font-weight: 600;
+        }
+
+        .price-high {
+            color: var(--color-danger);
+        }
+
+        .price-medium {
+            color: var(--color-warning);
+        }
+
+        .calculator-section {
+            background: var(--color-secondary);
+            padding: var(--space-24);
+            border-radius: 8px;
+            margin-top: var(--space-24);
+        }
+
+        .input-group {
+            margin-bottom: var(--space-16);
+        }
+
+        label {
+            display: block;
+            margin-bottom: var(--space-8);
+            font-weight: 500;
+            color: var(--color-primary);
+        }
+
+        input, select {
+            width: 100%;
+            padding: var(--space-8) var(--space-16);
+            border: 1px solid var(--color-border);
+            border-radius: 4px;
+            font-size: 1em;
+            font-family: inherit;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(45, 122, 122, 0.1);
+        }
+
+        .calculator-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--space-16);
+            margin-bottom: var(--space-24);
+        }
+
+        .result {
+            background: white;
+            padding: var(--space-16);
+            border-radius: 8px;
+            border-left: 4px solid var(--color-primary);
+        }
+
+        .result-title {
+            font-size: 0.9em;
+            color: var(--color-text-light);
+            margin-bottom: var(--space-8);
+        }
+
+        .result-value {
+            font-size: 1.8em;
+            font-weight: 700;
+            color: var(--color-success);
+        }
+
+        .button {
+            background: var(--color-primary);
+            color: white;
+            padding: var(--space-8) var(--space-24);
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 500;
+            transition: background 0.3s ease;
+        }
+
+        .button:hover {
+            background: var(--color-primary-hover);
+        }
+
+        .comparison-note {
+            background: #e8f5e9;
+            padding: var(--space-16);
+            border-radius: 4px;
+            margin-bottom: var(--space-24);
+            border-left: 4px solid var(--color-success);
+            font-size: 0.95em;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: var(--space-16);
+            }
+
+            h1 {
+                font-size: 1.5em;
+            }
+
+            table {
+                font-size: 0.85em;
+            }
+
+            th, td {
+                padding: var(--space-8);
+            }
+
+            .tabs {
+                gap: 0;
+            }
+
+            .tab-button {
+                padding: var(--space-8) var(--space-12);
+                font-size: 0.9em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>💰 MicroSaaS Cost Calculator</h1>
+        <p style="text-align: center; color: var(--color-text-light); margin-bottom: var(--space-24);">
+            Compare real costs of AI APIs, No-Code and Low-Code tools. Prices updated December 2025.
+        </p>
+
+        <div class="tabs">
+            <button class="tab-button active" onclick="switchTab('llm')">LLM API</button>
+            <button class="tab-button" onclick="switchTab('nocode')">No-Code</button>
+            <button class="tab-button" onclick="switchTab('lowcode')">Low-Code</button>
+            <button class="tab-button" onclick="switchTab('calculator')">Calculator</button>
+        </div>
+
+        <!-- TAB: LLM API -->
+        <div id="llm" class="tab-content active">
+            <div class="comparison-note">
+                <strong>💡 How to read:</strong> Prices are per 1 million tokens. Example: 100k average requests = ~100 million tokens total.
+            </div>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Model</th>
+                            <th>Input ($/1M)</th>
+                            <th>Output ($/1M)</th>
+                            <th>Estimated Cost (100K requests)</th>
+                            <th>Use Case</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>OpenAI GPT-5</strong></td>
+                            <td class="price">$1.25</td>
+                            <td class="price-high">$10.00</td>
+                            <td class="price-high">~$720</td>
+                            <td>Complex reasoning</td>
+                        </tr>
+                        <tr>
+                            <td><strong>OpenAI GPT-5 mini</strong></td>
+                            <td class="price">$0.25</td>
+                            <td class="price">$2.00</td>
+                            <td class="price">~$145</td>
+                            <td>Text, chat, fast</td>
+                        </tr>
+                        <tr>
+                            <td><strong>OpenAI GPT-4o</strong></td>
+                            <td class="price">$5.00</td>
+                            <td class="price-medium">$20.00</td>
+                            <td class="price-medium">~$1,450</td>
+                            <td>Images + text</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Gemini 2.5 Pro</strong></td>
+                            <td class="price">$1.25</td>
+                            <td class="price">$10.00</td>
+                            <td class="price">~$720</td>
+                            <td>Multimodal, balanced</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Gemini 2.5 Flash</strong></td>
+                            <td class="price">$0.15</td>
+                            <td class="price">$3.50</td>
+                            <td class="price">~$255</td>
+                            <td>Fast, ultra-cheap</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Claude Opus 4</strong></td>
+                            <td class="price-high">$15.00</td>
+                            <td class="price-high">$75.00</td>
+                            <td class="price-high">~$5,400</td>
+                            <td>Complex analysis</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Claude Sonnet 4</strong></td>
+                            <td class="price">$3.00</td>
+                            <td class="price-medium">$15.00</td>
+                            <td class="price-medium">~$1,050</td>
+                            <td>Balanced quality</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Claude Haiku 3.5</strong></td>
+                            <td class="price">$0.80</td>
+                            <td class="price">$4.00</td>
+                            <td class="price">~$280</td>
+                            <td>Fast, embedding</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Mistral Large</strong></td>
+                            <td class="price">$0.81</td>
+                            <td class="price">$2.43</td>
+                            <td class="price">~$170</td>
+                            <td>Budget-friendly</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Mistral Small</strong></td>
+                            <td class="price">$0.20</td>
+                            <td class="price">$0.60</td>
+                            <td class="price">~$42</td>
+                            <td>Classification</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Grok-3 Mini</strong></td>
+                            <td class="price">$0.30</td>
+                            <td class="price">$0.50</td>
+                            <td class="price">~$35</td>
+                            <td>Ultra-fast, cheap</td>
+                        </tr>
+                        <tr>
+                            <td><strong>DeepSeek V3</strong></td>
+                            <td class="price">$0.028</td>
+                            <td class="price">$0.042</td>
+                            <td class="price">~$3</td>
+                            <td>Lowest cost ever</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TAB: NO-CODE -->
+        <div id="nocode" class="tab-content">
+            <div class="comparison-note">
+                <strong>💡 No-Code means:</strong> Zero coding. Drag-and-drop, visual connections, templates.
+            </div>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Tool</th>
+                            <th>Plan</th>
+                            <th>Price USD/Month</th>
+                            <th>Target Users</th>
+                            <th>Best For</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Bubble</strong></td>
+                            <td>Free</td>
+                            <td class="price">$0</td>
+                            <td>0-10</td>
+                            <td>Prototype, test</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Bubble</strong></td>
+                            <td>Starter</td>
+                            <td class="price">$32</td>
+                            <td>10-100</td>
+                            <td>Simple MVP</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Bubble</strong></td>
+                            <td>Growth</td>
+                            <td class="price-medium">$134</td>
+                            <td>100-1000</td>
+                            <td>Growing SaaS</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Bubble</strong></td>
+                            <td>Team</td>
+                            <td class="price-high">$399</td>
+                            <td>1000+</td>
+                            <td>Team scale</td>
+                        </tr>
+                        <tr>
+                            <td><strong>FlutterFlow</strong></td>
+                            <td>Free</td>
+                            <td class="price">$0</td>
+                            <td>0-5</td>
+                            <td>Mobile prototype</td>
+                        </tr>
+                        <tr>
+                            <td><strong>FlutterFlow</strong></td>
+                            <td>Standard</td>
+                            <td class="price">$30</td>
+                            <td>10-100</td>
+                            <td>Mobile MVP</td>
+                        </tr>
+                        <tr>
+                            <td><strong>FlutterFlow</strong></td>
+                            <td>Pro</td>
+                            <td class="price-medium">$70</td>
+                            <td>100-1000</td>
+                            <td>Scalable app</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Webflow</strong></td>
+                            <td>Free</td>
+                            <td class="price">$0</td>
+                            <td>0-20</td>
+                            <td>Landing page</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Webflow</strong></td>
+                            <td>Basic</td>
+                            <td class="price">$12</td>
+                            <td>20-1000</td>
+                            <td>Small website</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Webflow</strong></td>
+                            <td>CMS</td>
+                            <td class="price-medium">$80</td>
+                            <td>1000+</td>
+                            <td>Content site</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Airtable</strong></td>
+                            <td>Free</td>
+                            <td class="price">$0</td>
+                            <td>0-5</td>
+                            <td>Simple database</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Airtable</strong></td>
+                            <td>Pro</td>
+                            <td class="price">$20</td>
+                            <td>5-500</td>
+                            <td>CRM, projects</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Make</strong></td>
+                            <td>Free</td>
+                            <td class="price">$0</td>
+                            <td>Freelancer</td>
+                            <td>Simple automation</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Make</strong></td>
+                            <td>Pro</td>
+                            <td class="price">$9</td>
+                            <td>Small team</td>
+                            <td>Advanced workflows</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TAB: LOW-CODE -->
+        <div id="lowcode" class="tab-content">
+            <div class="comparison-note">
+                <strong>💡 Low-Code means:</strong> Some code. Mostly visual, backend control over data and logic.
+            </div>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Tool</th>
+                            <th>Plan</th>
+                            <th>Price USD/Month</th>
+                            <th>Database</th>
+                            <th>Unlimited APIs</th>
+                            <th>Target Users</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Supabase</strong></td>
+                            <td>Free</td>
+                            <td class="price">$0</td>
+                            <td>500MB</td>
+                            <td>Yes</td>
+                            <td>0-100 users</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Supabase</strong></td>
+                            <td>Team</td>
+                            <td class="price">$25</td>
+                            <td>100GB</td>
+                            <td>Yes</td>
+                            <td>100-10K users</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Firebase</strong></td>
+                            <td>Spark</td>
+                            <td class="price">$0</td>
+                            <td>1GB</td>
+                            <td>Yes</td>
+                            <td>0-50 users</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Firebase</strong></td>
+                            <td>Blaze (Pay-as-you-go)</td>
+                            <td class="price">~$40</td>
+                            <td>Unlimited</td>
+                            <td>Yes</td>
+                            <td>50-10K users</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Vercel</strong></td>
+                            <td>Free</td>
+                            <td class="price">$0</td>
+                            <td>-</td>
+                            <td>Yes</td>
+                            <td>Hobby projects</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Vercel</strong></td>
+                            <td>Pro</td>
+                            <td class="price">$20</td>
+                            <td>-</td>
+                            <td>Yes</td>
+                            <td>Production</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Xano</strong></td>
+                            <td>Free</td>
+                            <td class="price">$0</td>
+                            <td>No-code backend</td>
+                            <td>Yes</td>
+                            <td>Prototype</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Xano</strong></td>
+                            <td>Starter</td>
+                            <td class="price">$85</td>
+                            <td>Unlimited</td>
+                            <td>Yes</td>
+                            <td>Production backend</td>
+                        </tr>
+                        <tr>
+                            <td><strong>PlanetScale</strong></td>
+                            <td>Free</td>
+                            <td class="price">$0</td>
+                            <td>10GB MySQL</td>
+                            <td>Yes</td>
+                            <td>0-1K QPS</td>
+                        </tr>
+                        <tr>
+                            <td><strong>PlanetScale</strong></td>
+                            <td>Scaler</td>
+                            <td class="price">$29</td>
+                            <td>100GB MySQL</td>
+                            <td>Yes</td>
+                            <td>1K-10K QPS</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Railway</strong></td>
+                            <td>Free</td>
+                            <td class="price">$0</td>
+                            <td>PostgreSQL</td>
+                            <td>Yes</td>
+                            <td>Prototype</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Railway</strong></td>
+                            <td>Pay-as-you-go</td>
+                            <td class="price">~$20-50</td>
+                            <td>Unlimited</td>
+                            <td>Yes</td>
+                            <td>Production</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TAB: CALCULATOR -->
+        <div id="calculator" class="tab-content">
+            <h2 style="color: var(--color-primary); margin-bottom: var(--space-16);">Calculate Your Total Cost</h2>
+            
+            <div class="calculator-grid">
+                <div class="input-group">
+                    <label>Active users per month?</label>
+                    <input type="number" id="activeUsers" placeholder="Ex: 500" value="500" onchange="updateCalculation()">
+                </div>
+                <div class="input-group">
+                    <label>API requests per month per user?</label>
+                    <input type="number" id="apiRequests" placeholder="Ex: 1000" value="1000" onchange="updateCalculation()">
+                </div>
+                <div class="input-group">
+                    <label>Which LLM?</label>
+                    <select id="llmChoice" onchange="updateCalculation()">
+                        <option value="0.028|0.042">DeepSeek V3</option>
+                        <option value="0.30|0.50">Grok-3 Mini</option>
+                        <option value="0.20|0.60">Mistral Small</option>
+                        <option value="0.81|2.43">Mistral Large</option>
+                        <option value="0.25|2.00">OpenAI GPT-5 mini</option>
+                        <option value="0.15|3.50">Gemini 2.5 Flash</option>
+                        <option value="0.80|4.00">Claude Haiku 3.5</option>
+                        <option value="1.25|10.00">OpenAI GPT-5 or Gemini 2.5 Pro</option>
+                        <option value="3.00|15.00">Claude Sonnet 4</option>
+                        <option value="5.00|20.00">OpenAI GPT-4o</option>
+                        <option value="15.00|75.00">Claude Opus 4</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Which No-Code Platform?</label>
+                    <select id="nocodeChoice" onchange="updateCalculation()">
+                        <option value="0">Bubble Free ($0/month)</option>
+                        <option value="0">FlutterFlow Free ($0/month)</option>
+                        <option value="0">Webflow Free ($0/month)</option>
+                        <option value="0">Airtable Free ($0/month)</option>
+                        <option value="0">Make Free ($0/month)</option>
+                        <option value="9">Make Pro ($9/month)</option>
+                        <option value="12">Webflow Basic ($12/month)</option>
+                        <option value="20">Airtable Pro ($20/month)</option>
+                        <option value="30">FlutterFlow Standard ($30/month)</option>
+                        <option value="32">Bubble Starter ($32/month)</option>
+                        <option value="70">FlutterFlow Pro ($70/month)</option>
+                        <option value="80">Webflow CMS ($80/month)</option>
+                        <option value="134">Bubble Growth ($134/month)</option>
+                        <option value="399">Bubble Team ($399/month)</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Which Low-Code Backend?</label>
+                    <select id="lowcodeChoice" onchange="updateCalculation()">
+                        <option value="0">Supabase Free ($0/month)</option>
+                        <option value="0">Firebase Spark ($0/month)</option>
+                        <option value="0">Vercel Free ($0/month)</option>
+                        <option value="0">Xano Free ($0/month)</option>
+                        <option value="0">PlanetScale Free ($0/month)</option>
+                        <option value="0">Railway Free ($0/month)</option>
+                        <option value="20">Vercel Pro ($20/month)</option>
+                        <option value="25">Supabase Team ($25/month)</option>
+                        <option value="29">PlanetScale Scaler ($29/month)</option>
+                        <option value="40">Firebase Blaze (~$40/month)</option>
+                        <option value="50">Railway Pay-as-you-go (~$20-50/month)</option>
+                        <option value="85">Xano Starter ($85/month)</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Do you use payment processing (Stripe)?</label>
+                    <select id="useStripe" onchange="updateCalculation()">
+                        <option value="no">No</option>
+                        <option value="yes">Yes</option>
+                    </select>
+                </div>
+                <div class="input-group" id="stripeGroup" style="display: none;">
+                    <label>Stripe transactions per month?</label>
+                    <input type="number" id="transactions" placeholder="Ex: 1000" value="1000">
+                </div>
+                <div class="input-group">
+                    <label>Automation tools (Make/Zapier)?</label>
+                    <select id="automations" onchange="updateCalculation()">
+                        <option value="0">None</option>
+                        <option value="9">Make Pro ($9/month)</option>
+                        <option value="29">Zapier Pro ($29/month)</option>
+                    </select>
+                </div>
+            </div>
+
+            <button class="button" onclick="updateCalculation()">Calculate</button>
+
+            <div class="calculator-grid" style="margin-top: var(--space-24);">
+                <div class="result">
+                    <div class="result-title">LLM/API Cost</div>
+                    <div class="result-value" id="llmCost">$0</div>
+                </div>
+                <div class="result">
+                    <div class="result-title">No-Code Cost</div>
+                    <div class="result-value" id="nocodeCost">$0</div>
+                </div>
+                <div class="result">
+                    <div class="result-title">Low-Code Backend Cost</div>
+                    <div class="result-value" id="lowcodeCost">$0</div>
+                </div>
+                <div class="result">
+                    <div class="result-title">Stripe Cost (2.9% + $0.30)</div>
+                    <div class="result-value" id="stripeCost">$0</div>
+                </div>
+                <div class="result">
+                    <div class="result-title">Automation Cost</div>
+                    <div class="result-value" id="automationCost">$0</div>
+                </div>
+            </div>
+
+            <div style="background: var(--color-primary); color: white; padding: var(--space-24); border-radius: 8px; margin-top: var(--space-24); text-align: center;">
+                <div style="font-size: 0.9em; margin-bottom: var(--space-8);">TOTAL MONTHLY COST</div>
+                <div style="font-size: 2.5em; font-weight: 700;" id="totalCost">$0</div>
+                <div style="font-size: 0.9em; margin-top: var(--space-8); opacity: 0.9;">Annual cost: <span id="annualCost">$0</span></div>
+            </div>
+
+            <div style="background: #fff3cd; padding: var(--space-16); border-radius: 8px; margin-top: var(--space-24); border-left: 4px solid var(--color-warning);">
+                <strong>📝 Note:</strong> This calculator provides estimates. Actual costs depend on your specific usage and may vary.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function switchTab(tabName) {
+            const contents = document.querySelectorAll('.tab-content');
+            contents.forEach(content => content.classList.remove('active'));
+            
+            const buttons = document.querySelectorAll('.tab-button');
+            buttons.forEach(button => button.classList.remove('active'));
+            
+            document.getElementById(tabName).classList.add('active');
+            
+            event.target.classList.add('active');
+        }
+
+        function updateCalculation() {
+            const activeUsers = parseFloat(document.getElementById('activeUsers').value) || 0;
+            const apiRequestsPerUser = parseFloat(document.getElementById('apiRequests').value) || 0;
+            const totalApiRequests = activeUsers * apiRequestsPerUser;
+            
+            const llmChoice = document.getElementById('llmChoice').value;
+            const [inputPrice, outputPrice] = llmChoice.split('|').map(parseFloat);
+            
+            const tokensPerRequest = 1000;
+            const totalInputTokens = totalApiRequests * tokensPerRequest;
+            const totalOutputTokens = totalApiRequests * tokensPerRequest * 0.5;
+            
+            const llmCost = ((totalInputTokens / 1000000) * inputPrice) + ((totalOutputTokens / 1000000) * outputPrice);
+            
+            const noCodeCost = parseFloat(document.getElementById('nocodeChoice').value);
+            const lowCodeCost = parseFloat(document.getElementById('lowcodeChoice').value);
+            const useStripe = document.getElementById('useStripe').value;
+            const transactions = parseFloat(document.getElementById('transactions').value) || 0;
+            const automationCost = parseFloat(document.getElementById('automations').value);
+
+            document.getElementById('stripeGroup').style.display = useStripe === 'yes' ? 'block' : 'none';
+
+            let stripeCost = 0;
+            if (useStripe === 'yes') {
+                const avgTransactionPrice = 50;
+                stripeCost = (transactions * avgTransactionPrice * 0.029 + transactions * 0.30) / 100;
+            }
+
+            const totalMonthly = llmCost + noCodeCost + lowCodeCost + stripeCost + automationCost;
+            const totalAnnual = totalMonthly * 12;
+
+            document.getElementById('llmCost').textContent = '$' + llmCost.toFixed(2);
+            document.getElementById('nocodeCost').textContent = '$' + noCodeCost.toFixed(2);
+            document.getElementById('lowcodeCost').textContent = '$' + lowCodeCost.toFixed(2);
+            document.getElementById('stripeCost').textContent = '$' + stripeCost.toFixed(2);
+            document.getElementById('automationCost').textContent = '$' + automationCost.toFixed(2);
+            document.getElementById('totalCost').textContent = '$' + totalMonthly.toFixed(2);
+            document.getElementById('annualCost').textContent = '$' + totalAnnual.toFixed(2);
+        }
+
+        updateCalculation();
+    </script>
+</body>
+</html>
