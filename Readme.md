@@ -26,8 +26,11 @@ This is a discovery and planning tool for solopreneurs and indie hackers decidin
 Privacy & Data Security
 
 ✅ 100% Client-Side: Calculations run entirely in your browser.
+
 ✅ Private: No email, names, or personal data collected.
+
 ✅ Zero Tracking: No ads, analytics, or tracking cookies.
+
 ✅ Secure: Your input data never leaves your device.
 
 Your calculations exist only on your device. We don't collect, store, or transmit any information.
