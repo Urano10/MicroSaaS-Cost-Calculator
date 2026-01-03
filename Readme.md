@@ -23,8 +23,6 @@ This is a discovery and planning tool for solopreneurs and indie hackers decidin
 
 **This calculator is fully GDPR-compliant:**
 
-Privacy & Data Security
-
 ✅ 100% Client-Side: Calculations run entirely in your browser.
 
 ✅ Private: No email, names, or personal data collected.
